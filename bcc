@@ -1,0 +1,51 @@
+#!/bin/bash
+# BCC: Bash Currency Converter
+# Simple up-to-date currency converter in bash.
+# Dependencies: netcat, bc, printf, awk
+#
+#Usage: bcc sourceCurrency destinationCurrency amount
+# Examples:
+# 	bcc AUD USD 10
+# 	bcc GBP LAK 10
+# 	bcc NOK JPY 7463
+# 	bcc --list | grep "United States"
+
+# Issues:
+# 	4+ d.p. is a little ugly (fixing)
+# 	Relies on 3 letter country codes (but hey, at least you can list them all!...)
+#	Probably horrendously ineffecient
+#	My args parsing is awful. Apologies
+#
+CURR_LIST="AED:United Arab Emirates Dirham:$\nAFN:Afghanistan Afghani:؋\nALL:Albania Lek:Lek\nAMD:Armenia Dram:$\nANG:Netherlands Antilles Guilder:ƒ\nAOA:Angola Kwanza:$\nARS:Argentina Peso:$\nAUD:Australia Dollar:$\nAWG:Aruba Guilder:ƒ\nAZN:Azerbaijan New Manat:ман\nBAM:Bosnia and Herzegovina Convertible Marka:KM\nBBD:Barbados Dollar:$\nBDT:Bangladesh Taka:$\nBGN:Bulgaria Lev:лв\nBHD:Bahrain Dinar:$\nBIF:Burundi Franc:$\nBMD:Bermuda Dollar:$\nBND:Brunei Darussalam Dollar:$\nBOB:Bolivia Bolíviano:$b\nBRL:Brazil Real:R$\nBSD:Bahamas Dollar:$\nBTN:Bhutan Ngultrum:$\nBWP:Botswana Pula:P\nBYN:Belarus Ruble:Br\nBZD:Belize Dollar:BZ$\nCAD:Canada Dollar:$\nCDF:Congo/Kinshasa Franc:$\nCHF:Switzerland Franc:CHF\nCLP:Chile Peso:$\nCNY:China Yuan Renminbi:¥\nCOP:Colombia Peso:$\nCRC:Costa Rica Colon:₡\nCUC:Cuba Convertible Peso:$\nCUP:Cuba Peso:₱\nCVE:Cape Verde Escudo:$\nCZK:Czech Republic Koruna:Kč\nDJF:Djibouti Franc:$\nDKK:Denmark Krone:kr\nDOP:Dominican Republic Peso:RD$\nDZD:Algeria Dinar:$\nEGP:Egypt Pound:£\nERN:Eritrea Nakfa:$\nETB:Ethiopia Birr:$\nEUR:Euro Member Countries:€\nFJD:Fiji Dollar:$\nFKP:Falkland Islands (Malvinas) Pound:£\nGBP:United Kingdom Pound:£\nGEL:Georgia Lari:$\nGGP:Guernsey Pound:£\nGHS:Ghana Cedi:¢\nGIP:Gibraltar Pound:£\nGMD:Gambia Dalasi:$\nGNF:Guinea Franc:$\nGTQ:Guatemala Quetzal:Q\nGYD:Guyana Dollar:$\nHKD:Hong Kong Dollar:$\nHNL:Honduras Lempira:L\nHRK:Croatia Kuna:kn\nHTG:Haiti Gourde:$\nHUF:Hungary Forint:Ft\nIDR:Indonesia Rupiah:Rp\nILS:Israel Shekel:₪\nIMP:Isle of Man Pound:£\nINR:India Rupee:\nIQD:Iraq Dinar:$\nIRR:Iran Rial:﷼\nISK:Iceland Krona:kr\nJEP:Jersey Pound:£\nJMD:Jamaica Dollar:J$\nJOD:Jordan Dinar:$\nJPY:Japan Yen:¥\nKES:Kenya Shilling:$\nKGS:Kyrgyzstan Som:лв\nKHR:Cambodia Riel:៛\nKMF:Comoros Franc:$\nKPW:Korea (North) Won:₩\nKRW:Korea (South) Won:₩\nKWD:Kuwait Dinar:$\nKYD:Cayman Islands Dollar:$\nKZT:Kazakhstan Tenge:лв\nLAK:Laos Kip:₭\nLBP:Lebanon Pound:£\nLKR:Sri Lanka Rupee:₨\nLRD:Liberia Dollar:$\nLSL:Lesotho Loti:$\nLYD:Libya Dinar:$\nMAD:Morocco Dirham:$\nMDL:Moldova Leu:$\nMGA:Madagascar Ariary:$\nMKD:Macedonia Denar:ден\nMMK:Myanmar (Burma) Kyat:$\nMNT:Mongolia Tughrik:₮\nMOP:Macau Pataca:$\nMRO:Mauritania Ouguiya:$\nMUR:Mauritius Rupee:₨\nMVR:Maldives (Maldive Islands) Rufiyaa:$\nMWK:Malawi Kwacha:$\nMXN:Mexico Peso:$\nMYR:Malaysia Ringgit:RM\nMZN:Mozambique Metical:MT\nNAD:Namibia Dollar:$\nNGN:Nigeria Naira:₦\nNIO:Nicaragua Cordoba:C$\nNOK:Norway Krone:kr\nNPR:Nepal Rupee:₨\nNZD:New Zealand Dollar:$\nOMR:Oman Rial:﷼\nPAB:Panama Balboa:B/.\nPEN:Peru Sol:S/.\nPGK:Papua New Guinea Kina:$\nPHP:Philippines Peso:₱\nPKR:Pakistan Rupee:₨\nPLN:Poland Zloty:zł\nPYG:Paraguay Guarani:Gs\nQAR:Qatar Riyal:﷼\nRON:Romania New Leu:lei\nRSD:Serbia Dinar:Дин.\nRUB:Russia Ruble:руб\nRWF:Rwanda Franc:$\nSAR:Saudi Arabia Riyal:﷼\nSBD:Solomon Islands Dollar:$\nSCR:Seychelles Rupee:₨\nSDG:Sudan Pound:$\nSEK:Sweden Krona:kr\nSGD:Singapore Dollar:$\nSHP:Saint Helena Pound:£\nSLL:Sierra Leone Leone:$\nSOS:Somalia Shilling:S\nSPL*:Seborga Luigino:$\nSRD:Suriname Dollar:$\nSTD:São Tomé and Príncipe Dobra:$\nSVC:El Salvador Colon:$\nSYP:Syria Pound:£\nSZL:Swaziland Lilangeni:$\nTHB:Thailand Baht:฿\nTJS:Tajikistan Somoni:$\nTMT:Turkmenistan Manat:$\nTND:Tunisia Dinar:$\nTOP:Tonga Pa'anga:$\nTRY:Turkey Lira:\nTTD:Trinidad and Tobago Dollar:TT$\nTVD:Tuvalu Dollar:$\nTWD:Taiwan New Dollar:NT$\nTZS:Tanzania Shilling:$\nUAH:Ukraine Hryvnia:₴\nUGX:Uganda Shilling:$\nUSD:United States Dollar:$\nUYU:Uruguay Peso:$U\nUZS:Uzbekistan Som:лв\nVEF:Venezuela Bolivar:Bs\nVND:Viet Nam Dong:₫\nVUV:Vanuatu Vatu:$\nWST:Samoa Tala:$\nXAF:Communauté Financière Africaine (BEAC) CFA Franc BEAC:$\nXCD:East Caribbean Dollar:$\nXDR:International Monetary Fund (IMF) Special Drawing Rights:$\nXOF:Communauté Financière Africaine (BCEAO) Franc:$\nXPF:Comptoirs Français du Pacifique (CFP) Franc:$\nYER:Yemen Rial:﷼\nZAR:South Africa Rand:R\nZMW:Zambia Kwacha:$"
+SRC=$1
+DEST=$2
+AMNT=$3
+
+if [ $SRC == "--help" ]; then
+	printf "BCC: Bash Currency Converter\n usage: [--help][--list] sourcecurrency destinationcurrency amount\nExamples:\nbcc AUD USD 10\nbcc USD AUD 10\nbcc NOK JPY 72622\nbcc --list | grep Norway\n"
+elif [[ $SRC == "--list" ]]; then
+	printf "List of Currency Codes, Currency Names, and Symbols: \n`echo $CURR_LIST | tr ':' '\t'`\n"
+else
+	#Check that SRC currency and DEST currency exist
+	SRC_L=`echo $CURR_LIST | grep $SRC`
+	if [[ ${#SRC_L} -lt 1 ]]; then
+		printf "$SRC is not a valid currency code\n"
+		exit
+	fi
+
+	DEST_L=`echo $CURR_LIST | grep $DEST`
+	if [[ ${#DEST_L} -lt 1 ]]; then
+		printf "$DEST is not a valid currency code\n"
+		exit
+	fi
+
+	RATE=$(echo "GET download.finance.yahoo.com/d/quotes.csv?e=.csv&f=c4l1&s=${SRC}${DEST}=X" | nc download.finance.yahoo.com 80 2>/dev/null | awk -F',' '{ print $2; }')
+	CONV_VAL=$(echo "${AMNT} * ${RATE}" | bc -l) # Do the calculation
+	SRC_STRING=`printf "$CURR_LIST" | grep $SRC` #Get the full source currency string
+	DEST_STRING=`printf "$CURR_LIST" | grep $DEST` #Get the full destination currency string
+	SRC_SYM=`echo $SRC_STRING | awk '{ split($0,a,":"); print a[3]}'` #Get the Source Currency Symbol
+	DEST_SYM=`echo $DEST_STRING | awk '{ split($0,a,":"); print a[3]}'` #Get the Destination Currency Symbol
+	SRC_PRTY=`echo $SRC_STRING | awk '{ split($0,a,":"); print a[2]}'` #Get the Source Currency Full Name
+	DEST_PRTY=`echo $DEST_STRING | awk '{ split($0,a,":"); print a[2]}'` #Get the Destination Currency Full Name
+	printf "$SRC_SYM$AMNT from $SRC ($SRC_PRTY) to $DEST ($DEST_PRTY) is $DEST_SYM$CONV_VAL at rate of $RATE\n" #Print to console
+fi
